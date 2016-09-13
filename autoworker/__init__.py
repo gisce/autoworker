@@ -29,6 +29,7 @@ class AutoWorker(object):
         conn = StrictRedis()
         q = [Queue(self.queue, connection=conn)]
         worker = Worker(q, connection=conn)
+        worker._name = '{}-auto'.format(worker.name)
         worker.work(burst=True)
 
     def work(self):
