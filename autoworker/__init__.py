@@ -1,11 +1,13 @@
 import multiprocessing as mp
+
 from rq import Worker, Queue
 from rq.contrib.legacy import cleanup_ghosts
-from redis import StrictRedis
-
 from osconf import config_from_environment
 
+
 MAX_PROCS = mp.cpu_count() + 1
+"""Number of maximum procs we can run
+"""
 
 
 class AutoWorker(object):
