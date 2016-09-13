@@ -2,13 +2,21 @@ language: python
 services:
 - redis-server
 python:
-- "2.7"
-- "3.5"
+- '2.7'
+- '3.5'
 install:
-- "pip install ."
-- "pip install -r requirements-dev.txt"
+- pip install .
+- pip install -r requirements-dev.txt
 script:
 - mamba --enable-coverage
 after_success:
-- coverage report  
+- coverage report
 - coveralls
+deploy:
+  provider: pypi
+  user: gisce
+  password:
+    secure: hy0hN0yvQ8KEAA9yxWpCHRxWcEir8BDuYKTUJ1vD+1OVF7Bz+Xzs5cnMWxezULV/dml4seCP/jNrwcythZoCsfxXC8xyLZHib91vs2VYtXTdlSNjbUkAVnGWIxCw/3BM3GQSjUpnjz7A9nWU22ATTBQTUzoCTSFHfZYprY0qKOj0pJFotF7eV9Z/nXltkHcZUS4wJwNO82G2pXLlafRp6QgN3qAkMYjZHN7/13ks8Fi/PmD8+wGeWaqrDzRasdWXbcgh4rFFyl0zR0tuJMnMwH653vwNBG+RaxYp41snHQeOTwEUql1SoG3kAXOZKDB0OcmTscZ0Fpbgy9pnQ/ADg9glpquP7gFJj/0jT0zCNEjcdg5CaC7Bgp3rewh9qO+LeAa1MOLMWvzTn7mbA7Cp6dGqZfkMD2fY0qZsPe9PYU8Afs4wIv5pGbQg/GixXxtwvd3PYWZ+b4TNHfsefk/nbsmsZvn3V8gTI3KhHT0T8LSKsr4gkot1kNXHYwvIqFkF226miB+ieQx19XSn1MO28zp0IcE62BGo4hJ1NmnFv+D4McYGAY96GLI44Xfg/GMEegRbFfs4Qlr4bGC+5CaZ0ZYNqbRaXocBBSQ+8iBWi7WyQwefC1XxzEsCGby+SwyvuQ2PEXs5QbqP8ffB5Dt/Ru8NCXUpAwyhyBSX4RfPJec=
+  on:
+    tags: true
+    repo: gisce/autoworker
