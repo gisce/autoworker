@@ -1,6 +1,10 @@
+import os
 from autoworker import AutoWorker
 
 from expects import *
+
+# Setup environment variable
+os.environ['AUTOWORKER_REDIS_URL'] = 'redis://localhost:6379/0'
 
 
 with description('The autoworker class'):

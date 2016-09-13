@@ -1,6 +1,9 @@
 import multiprocessing as mp
 from rq import Worker, Queue
+from rq.contrib.legacy import cleanup_ghosts
 from redis import StrictRedis
+
+from osconf import config_from_environment
 
 MAX_PROCS = mp.cpu_count() + 1
 
@@ -22,13 +25,24 @@ class AutoWorker(object):
         else:
             raise ValueError('Max procs {} not supported'.format(max_procs))
         self.processes = []
+        self.config = config_from_environment(
+            'AUTOWORKER',
+            ['redis_url'],
+            queue_class='rq.Queue',
+            worker_class='rq.Worker',
+            job_class='rq.Job',
+        )
 
     def worker(self):
         """Internal target to use in multiprocessing
         """
-        conn = StrictRedis()
-        q = [Queue(self.queue, connection=conn)]
-        worker = Worker(q, connection=conn)
+        from rq.utils import import_attribute
+        conn = StrictRedis.from_url(self.config['redis_url'])
+        cleanup_ghosts(conn)
+        worker_class = import_attribute(self.config['worker_class'])
+        queue_class = import_attribute(self.config['queue_class'])
+        q = [queue_class(self.queue, connection=conn)]
+        worker = worker_class(q, connection=conn)
         worker._name = '{}-auto'.format(worker.name)
         worker.work(burst=True)
 
