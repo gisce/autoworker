@@ -18,7 +18,8 @@ with description('The autoworker class'):
 
         with it('must raise an error if is 0 < max_procs < number of cpus + 1'):
             def callback():
-                a = AutoWorker(max_procs=10)
+                import multiprocessing as mp
+                a = AutoWorker(max_procs=mp.cpu_count() + 2)
 
             expect(callback).to(raise_error(ValueError))
 
