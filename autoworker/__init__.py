@@ -1,11 +1,14 @@
+import os
 import multiprocessing as mp
-from rq import Worker, Queue
-from rq.contrib.legacy import cleanup_ghosts
-from redis import StrictRedis
 
+from redis import StrictRedis
+from rq.contrib.legacy import cleanup_ghosts
 from osconf import config_from_environment
 
+
 MAX_PROCS = mp.cpu_count() + 1
+"""Number of maximum procs we can run
+"""
 
 
 class AutoWorker(object):
@@ -20,7 +23,7 @@ class AutoWorker(object):
             self.queue = queue
         if max_procs is None:
             self.max_procs = MAX_PROCS
-        elif 1 < max_procs < MAX_PROCS + 1:
+        elif 1 <= max_procs < MAX_PROCS + 1:
             self.max_procs = max_procs
         else:
             raise ValueError('Max procs {} not supported'.format(max_procs))
@@ -46,13 +49,18 @@ class AutoWorker(object):
         worker._name = '{}-auto'.format(worker.name)
         worker.work(burst=True)
 
+    def _create_worker(self):
+        child_pid = os.fork()
+        if child_pid == 0:
+            self.worker()
+
     def work(self):
         """Spawn the multiple workers using multiprocessing and `self.worker`_
         targget
         """
         self.processes = [
-            mp.Process(target=self.worker) for _ in range(0, self.max_procs)
+            mp.Process(target=self._create_worker) for _ in range(0, self.max_procs)
         ]
         for proc in self.processes:
-            proc.daemon = False
+            proc.daemon = True
             proc.start()
