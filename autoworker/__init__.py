@@ -19,6 +19,8 @@ class AutoWorkerQueue(Queue):
             name=name, default_timeout=default_timeout, connection=connection,
             async=async, job_class=job_class
         )
+        if max_workers is None:
+            max_workers = MAX_PROCS
         self.max_workers = max_workers
         self.workers = []
 
