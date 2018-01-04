@@ -16,7 +16,7 @@ class AutoWorker(object):
     :param queue: Queue to listen
     :param max_procs: Number of max_procs to spawn
     """
-    def __init__(self, queue=None, max_procs=None):
+    def __init__(self, queue=None, max_procs=None, skip_failed=True):
         if queue is None:
             self.queue = 'default'
         else:
@@ -35,6 +35,7 @@ class AutoWorker(object):
             worker_class='rq.Worker',
             job_class='rq.Job',
         )
+        self.skip_failed = skip_failed
 
     def worker(self):
         """Internal target to use in multiprocessing
@@ -45,7 +46,13 @@ class AutoWorker(object):
         worker_class = import_attribute(self.config['worker_class'])
         queue_class = import_attribute(self.config['queue_class'])
         q = [queue_class(self.queue, connection=conn)]
-        worker = worker_class(q, connection=conn)
+        if self.skip_failed:
+            exception_handlers = []
+        else:
+            exception_handlers = None
+        worker = worker_class(
+            q, connection=conn, exception_handlers=exception_handlers
+        )
         worker._name = '{}-auto'.format(worker.name)
         worker.work(burst=True)
 
