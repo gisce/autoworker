@@ -3,6 +3,8 @@ import multiprocessing as mp
 
 from redis import StrictRedis
 from rq.contrib.legacy import cleanup_ghosts
+from rq.worker import Worker
+from rq.utils import import_attribute
 from osconf import config_from_environment
 
 
@@ -19,9 +21,7 @@ class AutoWorker(object):
     def __init__(self, queue=None, max_procs=None, skip_failed=True,
                  default_result_ttl=None):
         if queue is None:
-            self.queue = 'default'
-        else:
-            self.queue = queue
+            queue = 'default'
         if max_procs is None:
             self.max_procs = MAX_PROCS
         elif 1 <= max_procs < MAX_PROCS + 1:
@@ -38,22 +38,23 @@ class AutoWorker(object):
         )
         self.skip_failed = skip_failed
         self.default_result_ttl = default_result_ttl
+        self.connection = StrictRedis.from_url(self.config['redis_url'])
+        queue_class = import_attribute(self.config['queue_class'])
+        self.queue = queue_class(queue, connection=self.connection)
 
     def worker(self):
         """Internal target to use in multiprocessing
         """
-        from rq.utils import import_attribute
-        conn = StrictRedis.from_url(self.config['redis_url'])
-        cleanup_ghosts(conn)
+        cleanup_ghosts(self.connection)
         worker_class = import_attribute(self.config['worker_class'])
-        queue_class = import_attribute(self.config['queue_class'])
-        q = [queue_class(self.queue, connection=conn)]
         if self.skip_failed:
             exception_handlers = []
         else:
             exception_handlers = None
+
         worker = worker_class(
-            q, connection=conn, exception_handlers=exception_handlers,
+            [self.queue], connection=self.connection,
+            exception_handlers=exception_handlers,
             default_result_ttl=self.default_result_ttl
         )
         worker._name = '{}-auto'.format(worker.name)
@@ -68,8 +69,9 @@ class AutoWorker(object):
         """Spawn the multiple workers using multiprocessing and `self.worker`_
         targget
         """
+        max_procs = self.max_procs - Worker.count(self.queue)
         self.processes = [
-            mp.Process(target=self._create_worker) for _ in range(0, self.max_procs)
+            mp.Process(target=self._create_worker) for _ in range(0, max_procs)
         ]
         for proc in self.processes:
             proc.daemon = True

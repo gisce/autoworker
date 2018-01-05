@@ -1,7 +1,6 @@
-import sys
 from setuptools import setup, find_packages
 
-INSTALL_REQUIRES = ['rq', 'osconf']
+INSTALL_REQUIRES = ['rq>=0.10.0', 'osconf']
 
 setup(
     name='autoworker',
