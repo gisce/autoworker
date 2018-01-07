@@ -3,6 +3,7 @@ import multiprocessing as mp
 
 from redis import StrictRedis
 from rq.contrib.legacy import cleanup_ghosts
+from rq.queue import Queue
 from rq.worker import Worker
 from rq.utils import import_attribute
 from osconf import config_from_environment
@@ -11,6 +12,30 @@ from osconf import config_from_environment
 MAX_PROCS = mp.cpu_count() + 1
 """Number of maximum procs we can run
 """
+
+class AutoWorkerQueue(Queue):
+
+    def __init__(self, name='default', default_timeout=None, connection=None,
+                 async=True, job_class=None, max_workers=None):
+        super(AutoWorkerQueue, self).__init__(
+            name=name, default_timeout=default_timeout, connection=connection,
+            async=async, job_class=job_class
+        )
+        if max_workers is None:
+            max_workers = MAX_PROCS
+        self.max_workers = max_workers
+
+    def enqueue(self, f, *args, **kwargs):
+        res = super(AutoWorkerQueue, self).enqueue(f, *args, **kwargs)
+        if Worker.count(queue=self) <= self.max_workers:
+            aw = AutoWorker(self.name, max_procs=1)
+            aw.work()
+        return res
+
+    def run_job(self, job):
+        return super(AutoWorkerQueue, self).run_job(job)
+
+
 
 
 class AutoWorker(object):
