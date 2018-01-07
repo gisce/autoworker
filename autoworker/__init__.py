@@ -69,7 +69,7 @@ class AutoWorker(object):
         """Spawn the multiple workers using multiprocessing and `self.worker`_
         targget
         """
-        max_procs = self.max_procs - Worker.count(self.queue)
+        max_procs = self.max_procs - Worker.count(queue=self.queue)
         self.processes = [
             mp.Process(target=self._create_worker) for _ in range(0, max_procs)
         ]
