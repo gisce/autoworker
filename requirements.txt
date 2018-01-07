@@ -1,2 +1,2 @@
-rq
 osconf
+rq>=0.10.0

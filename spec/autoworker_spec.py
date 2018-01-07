@@ -1,7 +1,9 @@
 import os
 from autoworker import AutoWorker
+from rq.queue import Queue
 
 from expects import *
+from mamba import *
 
 # Setup environment variable
 os.environ['AUTOWORKER_REDIS_URL'] = 'redis://localhost:6379/0'
@@ -27,14 +29,16 @@ with description('The autoworker class'):
 
             expect(callback).to(raise_error(ValueError))
 
-    with context('if no queue is defient'):
+    with context('if no queue is defined'):
         with it('must be "default" queue'):
             a = AutoWorker()
-            expect(a.queue).to(equal('default'))
+            q = Queue('default', connection=a.connection)
+            expect(a.queue).to(equal(q))
     with context('if a queue is defined'):
         with it('have to be the same value'):
             a = AutoWorker('low')
-            expect(a.queue).to(equal('low'))
+            q = Queue('low', connection=a.connection)
+            expect(a.queue).to(equal(q))
 
 
 with description('An instance of a AutoWorker'):
