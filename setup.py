@@ -4,7 +4,7 @@ INSTALL_REQUIRES = ['rq>=0.10.0', 'osconf']
 
 setup(
     name='autoworker',
-    version='0.5.0',
+    version='0.6.0',
     packages=find_packages(),
     url='https://github.com/gisce/autoworker',
     license='MIT',
