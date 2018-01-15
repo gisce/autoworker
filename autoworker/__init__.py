@@ -67,12 +67,12 @@ class AutoWorker(object):
         self.queue = queue_class(queue, connection=self.connection)
 
     def num_connected_workers(self):
-        return len(
+        return len([
             w for w in Worker.all(queue=self.queue) if w.state in (
                 WorkerStatus.STARTED, WorkerStatus.SUSPENDED, WorkerStatus.BUSY,
                 WorkerStatus.IDLE
             )
-        )
+        ])
 
     def worker(self):
         """Internal target to use in multiprocessing
