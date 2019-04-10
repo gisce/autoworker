@@ -43,7 +43,7 @@ class AutoWorker(object):
     :param max_procs: Number of max_procs to spawn
     """
     def __init__(self, queue=None, max_procs=None, skip_failed=True,
-                 default_result_ttl=None):
+                 default_result_ttl=0):
         if queue is None:
             queue = 'default'
         if max_procs is None:
