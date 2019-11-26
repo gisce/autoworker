@@ -64,15 +64,29 @@ class AutoWorker(object):
         self.default_result_ttl = default_result_ttl
         self.connection = StrictRedis.from_url(self.config['redis_url'])
         queue_class = import_attribute(self.config['queue_class'])
-        self.queue = queue_class(queue, connection=self.connection)
+        if isinstance(queue, list):
+            self.queue = []
+            for queue_ in queue:
+                self.queue.append(queue_class(queue_, connection=self.connection))
+        else:
+            self.queue = queue_class(queue, connection=self.connection)
 
     def num_connected_workers(self):
-        return len([
-            w for w in Worker.all(queue=self.queue) if w.state in (
-                WorkerStatus.STARTED, WorkerStatus.SUSPENDED, WorkerStatus.BUSY,
-                WorkerStatus.IDLE
-            )
-        ])
+        res_len = 0
+        if isinstance(self.queue, list):
+            for queue_ in self.queue:
+                res_len += len(
+                    [w for w in Worker.all(queue=queue_) if w.state in (
+                        WorkerStatus.STARTED, WorkerStatus.SUSPENDED,
+                        WorkerStatus.BUSY, WorkerStatus.IDLE)
+                     ])
+        else:
+            res_len = len(
+                [w for w in Worker.all(queue=self.queue) if w.state in (
+                    WorkerStatus.STARTED, WorkerStatus.SUSPENDED,
+                    WorkerStatus.BUSY, WorkerStatus.IDLE)
+                 ])
+        return res_len
 
     def worker(self):
         """Internal target to use in multiprocessing
@@ -84,8 +98,12 @@ class AutoWorker(object):
         else:
             exception_handlers = None
 
+        if isinstance(self.queue, list):
+            queues = self.queue
+        else:
+            queues = [self.queue]
         worker = worker_class(
-            [self.queue], connection=self.connection,
+            queues, connection=self.connection,
             exception_handlers=exception_handlers,
             default_result_ttl=self.default_result_ttl
         )
