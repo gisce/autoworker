@@ -17,10 +17,10 @@ MAX_PROCS = mp.cpu_count() + 1
 class AutoWorkerQueue(Queue):
 
     def __init__(self, name='default', default_timeout=None, connection=None,
-                 async=True, job_class=None, max_workers=None):
+                 is_async=True, job_class=None, max_workers=None):
         super(AutoWorkerQueue, self).__init__(
             name=name, default_timeout=default_timeout, connection=connection,
-            async=async, job_class=job_class
+            is_async=is_async, job_class=job_class
         )
         if max_workers is None:
             max_workers = MAX_PROCS
