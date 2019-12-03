@@ -32,10 +32,18 @@ class AutoWorkerQueue(Queue):
 
     def enqueue(self, f, *args, **kwargs):
         res = super(AutoWorkerQueue, self).enqueue(f, *args, **kwargs)
+        self.run_autowker()
+        return res
+
+    def enqueue_job(self, job, pipeline=None, at_front=False):
+        res = super(AutoWorkerQueue, self).enqueue_job(job, pipeline, at_front)
+        self.run_autowker()
+        return res
+
+    def run_autowker(self):
         if Worker.count(queue=self) <= self.max_workers:
             aw = AutoWorker(self.name, max_procs=1)
             aw.work()
-        return res
 
     def run_job(self, job):
         return super(AutoWorkerQueue, self).run_job(job)
