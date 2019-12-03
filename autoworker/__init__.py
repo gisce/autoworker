@@ -1,3 +1,5 @@
+# coding: utf-8
+from __future__ import unicode_literals
 import os
 import multiprocessing as mp
 from uuid import uuid4
