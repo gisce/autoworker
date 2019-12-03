@@ -1,5 +1,6 @@
 import os
 import multiprocessing as mp
+from uuid import uuid4
 
 from redis import Redis
 from rq.defaults import DEFAULT_RESULT_TTL
@@ -85,12 +86,12 @@ class AutoWorker(object):
         else:
             exception_handlers = None
 
+        name = '{}-auto'.format(uuid4().hex)
         worker = worker_class(
-            [self.queue], connection=self.connection,
+            [self.queue], name=name, connection=self.connection,
             exception_handlers=exception_handlers,
             default_result_ttl=self.default_result_ttl
         )
-        worker._name = '{}-auto'.format(worker.name)
         worker.work(burst=True)
 
     def _create_worker(self):
