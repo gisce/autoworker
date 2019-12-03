@@ -107,5 +107,5 @@ class AutoWorker(object):
             mp.Process(target=self._create_worker) for _ in range(0, max_procs)
         ]
         for proc in self.processes:
-            proc.daemon = True
+            proc.daemon = False
             proc.start()
