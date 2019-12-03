@@ -1,7 +1,8 @@
 import os
 import multiprocessing as mp
 
-from redis import StrictRedis
+from redis import Redis
+from rq.defaults import DEFAULT_RESULT_TTL
 from rq.contrib.legacy import cleanup_ghosts
 from rq.queue import Queue
 from rq.worker import Worker, WorkerStatus
@@ -43,7 +44,7 @@ class AutoWorker(object):
     :param max_procs: Number of max_procs to spawn
     """
     def __init__(self, queue=None, max_procs=None, skip_failed=True,
-                 default_result_ttl=None):
+                 default_result_ttl=DEFAULT_RESULT_TTL):
         if queue is None:
             queue = 'default'
         if max_procs is None:
@@ -62,7 +63,7 @@ class AutoWorker(object):
         )
         self.skip_failed = skip_failed
         self.default_result_ttl = default_result_ttl
-        self.connection = StrictRedis.from_url(self.config['redis_url'])
+        self.connection = Redis.from_url(self.config['redis_url'])
         queue_class = import_attribute(self.config['queue_class'])
         self.queue = queue_class(queue, connection=self.connection)
 
