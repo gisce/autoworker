@@ -14,7 +14,7 @@ from rq.utils import import_attribute
 from osconf import config_from_environment
 
 
-MAX_PROCS = mp.cpu_count() + 1
+MAX_PROCS = max(mp.cpu_count() - os.getloadavg()[0], 0) + 1
 """Number of maximum procs we can run
 """
 
