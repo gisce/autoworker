@@ -4,6 +4,7 @@ import os
 import multiprocessing as mp
 from uuid import uuid4
 import subprocess
+import sys
 
 from redis import Redis
 from rq.defaults import DEFAULT_RESULT_TTL
@@ -116,5 +117,7 @@ class AutoWorker(object):
         targget
         """
         max_procs = self.max_procs - self.num_connected_workers()
+        env = os.environ.copy()
+        env['PYTHONPATH'] = ':'.join(sys.path)
         for _ in range(0, max_procs):
-            subprocess.Popen(self.worker_command, close_fds=True)
+            subprocess.Popen(self.worker_command, close_fds=True, env=env)
