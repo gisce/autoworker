@@ -8,7 +8,6 @@ import sys
 
 from redis import Redis
 from rq.defaults import DEFAULT_RESULT_TTL
-from rq.contrib.legacy import cleanup_ghosts
 from rq.queue import Queue
 from rq.worker import Worker, WorkerStatus
 from rq.utils import import_attribute
