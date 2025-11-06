@@ -22,12 +22,18 @@ with description('The autoworker class'):
             a = AutoWorker(max_procs=3)
             expect(a.max_procs).to(equal(3))
 
-        with it('must raise an error if is 0 < max_procs < number of cpus + 1'):
+        with it('must raise an error if max_procs is less than 1'):
             def callback():
-                import multiprocessing as mp
-                a = AutoWorker(max_procs=mp.cpu_count() + 2)
+                a = AutoWorker(max_procs=0)
 
             expect(callback).to(raise_error(ValueError))
+
+        with it('must use MAX_PROCS if max_procs is greater than MAX_PROCS'):
+            import multiprocessing as mp
+            from autoworker import MAX_PROCS
+            
+            a = AutoWorker(max_procs=MAX_PROCS + 10)
+            expect(a.max_procs).to(equal(MAX_PROCS))
 
     with context('if no queue is defined'):
         with it('must be "default" queue'):

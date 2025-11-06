@@ -5,6 +5,7 @@ import multiprocessing as mp
 from uuid import uuid4
 import subprocess
 import sys
+import logging
 
 from redis import Redis
 from rq.defaults import DEFAULT_RESULT_TTL
@@ -12,6 +13,9 @@ from rq.queue import Queue
 from rq.worker import Worker, WorkerStatus
 from rq.utils import import_attribute
 from osconf import config_from_environment
+
+
+logger = logging.getLogger(__name__)
 
 
 MAX_PROCS = int(max(mp.cpu_count() - os.getloadavg()[0], 0) + 1)
@@ -61,10 +65,16 @@ class AutoWorker(object):
             queue = 'default'
         if max_procs is None:
             self.max_procs = MAX_PROCS
-        elif 1 <= max_procs < MAX_PROCS + 1:
-            self.max_procs = max_procs
+        elif max_procs < 1:
+            raise ValueError('Max procs {} not supported (must be >= 1)'.format(max_procs))
+        elif max_procs > MAX_PROCS:
+            logger.warning(
+                'Only %d processes will be used instead of the desired %d maximum processes',
+                MAX_PROCS, max_procs
+            )
+            self.max_procs = MAX_PROCS
         else:
-            raise ValueError('Max procs {} not supported'.format(max_procs))
+            self.max_procs = max_procs
         self.processes = []
         self.config = config_from_environment(
             'AUTOWORKER',
