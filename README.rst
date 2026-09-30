@@ -17,3 +17,6 @@ Spawn RQ Workers automatically
 .. code-block:: python
 
     aw = AutoWorker(queue='high', max_procs=6, skip_failed=False)
+
+Workers log the queue name and job ID when starting a job. Job descriptions
+are disabled to avoid logging arguments that may contain configuration secrets.

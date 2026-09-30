@@ -95,6 +95,7 @@ class AutoWorker(object):
 
         rq_params = {
             '-b': '',
+            '--disable-job-desc-logging': '',
             '-w': self.config['worker_class'],
             '-n': '{}-auto'.format(uuid4().hex),
             '-u': self.config['redis_url'],
