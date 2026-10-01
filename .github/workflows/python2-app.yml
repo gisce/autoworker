@@ -1,0 +1,35 @@
+name: Python 2.7
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test with mamba
+        run: |
+          docker run --rm --network host -v "$PWD:/work" -w /work python:2.7 bash -lc "
+            python -m pip install --upgrade 'pip<21' 'setuptools<45' &&
+            pip install -r requirements-dev.txt &&
+            pip install coveralls &&
+            pip install -e . &&
+            mamba --enable-coverage
+          "

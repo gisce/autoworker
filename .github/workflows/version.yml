@@ -1,0 +1,61 @@
+name: BUMP Version
+
+on:
+  push:
+    branches: [master]
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+env:
+  VERSION_FILE: setup.py
+
+permissions:
+  contents: write
+
+jobs:
+  bump-version:
+    runs-on: ubuntu-latest
+    if: ${{ !startsWith(github.event.head_commit.message, 'Bump to v') }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.PUB_MASTER_PUSH_TOKEN }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install python packages
+        run: python -m pip install --upgrade bump2version giscemultitools
+
+      - name: Get PR info
+        env:
+          GITHUB_TOKEN: ${{ secrets.RO_GH_ACTIONS_TOKEN }}
+          REPOSITORY_OWNER: ${{ github.repository_owner }}
+          REPOSITORY_NAME: ${{ github.event.repository.name }}
+        run: |
+          pr_info=$(gisce_github get-commits-sha-from-merge-commit \
+            --owner "$REPOSITORY_OWNER" --repository "$REPOSITORY_NAME" --sha "$GITHUB_SHA")
+          {
+            echo 'PR_INFO<<EOF'
+            echo "$pr_info"
+            echo 'EOF'
+          } >> "$GITHUB_ENV"
+
+      - name: Bump Version
+        run: |
+          version_type=$(echo "$PR_INFO" | jq -r '
+            [.pullRequest.labels[]?.name] |
+            if index("major") then "major"
+            elif index("minor") then "minor"
+            elif index("patch") then "patch"
+            else empty end
+          ')
+          if [[ -n "$version_type" ]]; then
+            git config user.name "Release Bot"
+            git config user.email github-actions@github.com
+            bump2version "$version_type" --tag --commit -m "Bump to v{new_version}" "$VERSION_FILE"
+            git push origin master --tags
+          fi

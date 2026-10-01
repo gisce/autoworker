@@ -1,0 +1,38 @@
+name: Upload package to PYPI
+
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+-rc[0-9]+'
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  upload-to-pypi:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Creating a release/pre-release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          draft: false
+          prerelease: ${{ contains(github.ref, '-rc') }}
+          generate_release_notes: true
+
+      - name: Publish a Python distribution to PyPI
+        if: ${{ !contains(github.ref, '-rc') }}
+        uses: conchylicultor/pypi-build-publish@v1
+        with:
+          pypi-token: ${{ secrets.PYPI_MASTER_TOKEN }}
