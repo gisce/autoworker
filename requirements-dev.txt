@@ -1,2 +1,5 @@
-mamba
+mamba==0.10; python_version < "3.11"
+mamba==0.11.3; python_version >= "3.11"
 expects
+# AutoWorker uses legacy APIs from RQ 1.x.
+rq>=1.1.0,<2

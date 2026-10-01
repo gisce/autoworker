@@ -1,8 +1,11 @@
 AutoWorker
 ==========
 
-.. image:: https://travis-ci.org/gisce/autoworker.svg?branch=master
-    :target: https://travis-ci.org/gisce/autoworker
+.. image:: https://github.com/gisce/autoworker/actions/workflows/python2-app.yml/badge.svg?branch=master
+    :target: https://github.com/gisce/autoworker/actions/workflows/python2-app.yml
+
+.. image:: https://github.com/gisce/autoworker/actions/workflows/python3-app.yml/badge.svg?branch=master
+    :target: https://github.com/gisce/autoworker/actions/workflows/python3-app.yml
 
 Spawn RQ Workers automatically
 
