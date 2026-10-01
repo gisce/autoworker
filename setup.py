@@ -1,6 +1,7 @@
 from setuptools import setup, find_packages
 
-INSTALL_REQUIRES = ['rq>=0.10.0', 'osconf']
+# RQ 1.1.0 fixes the --disable-job-desc-logging option used by workers.
+INSTALL_REQUIRES = ['rq>=1.1.0', 'osconf']
 
 setup(
     name='autoworker',
